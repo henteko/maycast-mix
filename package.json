@@ -1,8 +1,19 @@
 {
   "name": "maycast-mix",
+  "description": "Browser-based multi-track audio editor with MP3 export.",
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "license": "Apache-2.0",
+  "author": "henteko",
+  "homepage": "https://github.com/henteko/maycast-mix",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/henteko/maycast-mix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/henteko/maycast-mix/issues"
+  },
   "engines": {
     "node": ">=20"
   },
