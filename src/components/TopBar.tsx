@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Icon } from "./Icon";
-import { projectLength, useStore } from "../state/store";
+import { useStore } from "../state/store";
+import { ProjectMenu } from "./ProjectMenu";
 
 interface Props {
   onExport: () => void;
@@ -8,7 +9,6 @@ interface Props {
 
 export function TopBar({ onExport }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const sessionName = useStore((s) => s.sessionName);
   const tracks = useStore((s) => s.tracks);
   const exporting = useStore((s) => s.exporting);
   const exportProgress = useStore((s) => s.exportProgress);
@@ -17,8 +17,6 @@ export function TopBar({ onExport }: Props) {
   const redo = useStore((s) => s.redo);
   const canUndo = useStore((s) => s.past.length > 0);
   const canRedo = useStore((s) => s.future.length > 0);
-  const trackCount = tracks.length;
-  const len = projectLength(tracks);
 
   const onPick = () => fileRef.current?.click();
   const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,13 +35,7 @@ export function TopBar({ onExport }: Props) {
           Maycast<em>Mix</em>
         </div>
       </div>
-      <div className="project-meta">
-        <strong>{sessionName}</strong>
-        <span className="dot" />
-        <span>{trackCount} tracks</span>
-        <span className="dot" />
-        <span>{formatDuration(len)}</span>
-      </div>
+      <ProjectMenu />
       <div className="topbar-spacer" />
       <div className="topbar-actions">
         <button className="btn btn-ghost" onClick={onPick}>
@@ -100,14 +92,6 @@ export function TopBar({ onExport }: Props) {
       </div>
     </div>
   );
-}
-
-function formatDuration(s: number): string {
-  if (s <= 0) return "0 sec";
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  if (m === 0) return `${sec} sec`;
-  return `${m} min ${sec.toString().padStart(2, "0")} sec`;
 }
 
 function showHelp() {

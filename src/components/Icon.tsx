@@ -148,6 +148,28 @@ export function Icon({ name, size = 16 }: Props) {
         <line x1="5" x2="19" y1="12" y2="12" />
       </svg>
     ),
+    "chevron-down": (
+      <svg {...props}>
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    ),
+    x: (
+      <svg {...props}>
+        <line x1="18" x2="6" y1="6" y2="18" />
+        <line x1="6" x2="18" y1="6" y2="18" />
+      </svg>
+    ),
+    pencil: (
+      <svg {...props}>
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+      </svg>
+    ),
+    folder: (
+      <svg {...props}>
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+      </svg>
+    ),
     undo: (
       <svg {...props}>
         <path d="M3 7v6h6" />

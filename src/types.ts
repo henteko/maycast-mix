@@ -31,6 +31,11 @@ export interface Clip {
 export interface Track {
   id: string;
   name: string;
+  /**
+   * Persisted audio key — references the encoded blob + peaks stored in
+   * IndexedDB. Set when a file is added; reused by the project on save/load.
+   */
+  audioId: string;
   buffer: AudioBuffer;
   /**
    * Pre-computed peak amplitudes (0..1) for the entire source buffer,
@@ -52,5 +57,11 @@ export interface Track {
 export interface LoadingFile {
   id: string;
   name: string;
+}
+
+export interface ProjectLoadingState {
+  name: string;
+  current: number;
+  total: number;
 }
 

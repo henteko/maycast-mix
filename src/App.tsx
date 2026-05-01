@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TopBar } from "./components/TopBar";
 import { Transport } from "./components/Transport";
 import { Tracks } from "./components/Tracks";
 import { StatusBar } from "./components/StatusBar";
+import { LoadingOverlay } from "./components/LoadingOverlay";
 import { useKeyboard } from "./hooks/useKeyboard";
 import { PlaybackEngine } from "./audio/engine";
 import { renderMix } from "./audio/mixdown";
 import { encodeMp3 } from "./audio/mp3";
 import { projectLength as calcProjectLength, useStore } from "./state/store";
+import { saveCurrentProject } from "./storage/persist";
 
 const BASE_PX_PER_SEC = 8;
 
@@ -25,10 +27,54 @@ export function App() {
 
   const engineRef = useRef<PlaybackEngine | null>(null);
   const rafRef = useRef<number | null>(null);
+  const [bootstrapped, setBootstrapped] = useState(false);
 
   // Reactively recompute project length whenever tracks change.
   const projectLength = useMemo(() => calcProjectLength(tracks), [tracks]);
   const pxPerSec = BASE_PX_PER_SEC * zoom;
+
+  // ─── Bootstrap: always start with a blank session. ───
+  // Saved projects stay in IndexedDB and can be reopened via the project menu.
+  useEffect(() => {
+    setBootstrapped(true);
+  }, []);
+
+  // ─── Auto-save: debounced 800ms after the last edit. ───
+  // Only kicks in after bootstrap completes so we don't immediately re-save
+  // a freshly-loaded project.
+  useEffect(() => {
+    if (!bootstrapped) return;
+    let timer: number | null = null;
+    let last = {
+      tracks: useStore.getState().tracks,
+      sessionName: useStore.getState().sessionName,
+      zoom: useStore.getState().zoom,
+    };
+    const unsub = useStore.subscribe((s) => {
+      const changed =
+        s.tracks !== last.tracks ||
+        s.sessionName !== last.sessionName ||
+        s.zoom !== last.zoom;
+      if (!changed) return;
+      last = { tracks: s.tracks, sessionName: s.sessionName, zoom: s.zoom };
+      if (s.tracks.length === 0 && s.currentProjectId == null) return; // empty + unsaved
+      useStore.setState({ status: "保存中…" });
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(async () => {
+        try {
+          await saveCurrentProject();
+          useStore.setState({ status: "保存しました" });
+        } catch (err) {
+          console.error("Auto-save failed", err);
+          useStore.setState({ status: "保存に失敗しました" });
+        }
+      }, 800);
+    });
+    return () => {
+      unsub();
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [bootstrapped]);
 
   // ─── Engine lifecycle ───
   useEffect(() => {
@@ -237,6 +283,7 @@ export function App() {
         style={{ display: "none" }}
         onChange={onHiddenFile}
       />
+      <LoadingOverlay />
     </div>
   );
 }

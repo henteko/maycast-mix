@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import type { Clip, LoadingFile, Tool, Track } from "../types";
+import type { Clip, LoadingFile, ProjectLoadingState, Tool, Track } from "../types";
 import { decodeFile } from "../audio/decoder";
 import { computePeaks } from "../audio/peaks";
+import { putAudio } from "../storage/db";
 import { paletteForIndex } from "./palettes";
 
 const PEAKS_PER_SEC = 20;
@@ -18,6 +19,8 @@ interface HistorySnapshot {
 const MAX_HISTORY = 50;
 
 interface State {
+  /** Project id in IndexedDB. null = unsaved (no record yet). */
+  currentProjectId: string | null;
   sessionName: string;
   tracks: Track[];
   /** Set of selected clip ids */
@@ -28,6 +31,8 @@ interface State {
   playing: boolean;
   /** Files currently being decoded — rendered as ghost rows in the timeline. */
   loadingFiles: LoadingFile[];
+  /** Set while loading a saved project; drives the fullscreen overlay. */
+  projectLoading: ProjectLoadingState | null;
   /** Last error/info message to surface in the status bar */
   status: string;
   exporting: boolean;
@@ -89,6 +94,7 @@ interface Actions {
 export type Store = State & Actions;
 
 export const useStore = create<Store>((set, get) => ({
+  currentProjectId: null,
   sessionName: "untitled_session",
   tracks: [],
   selection: new Set(),
@@ -97,6 +103,7 @@ export const useStore = create<Store>((set, get) => ({
   tool: "select",
   playing: false,
   loadingFiles: [],
+  projectLoading: null,
   status: "準備完了",
   exporting: false,
   exportProgress: null,
@@ -125,11 +132,23 @@ export const useStore = create<Store>((set, get) => ({
         const buffer = await decodeFile(file);
         const peaks = computePeaks(buffer, PEAKS_PER_SEC);
         const trackId = uid("t");
+        const audioId = uid("a");
         const palette = paletteForIndex(paletteIdx);
         const channels = buffer.numberOfChannels;
         const meta = `${(buffer.sampleRate / 1000).toFixed(1)} kHz · ${
           channels === 1 ? "Mono" : channels === 2 ? "Stereo" : `${channels}ch`
         }`;
+        // Persist the encoded source + peaks to IndexedDB right away so the
+        // audio survives a reload even before the user (or auto-save) writes
+        // a project record referencing this audioId.
+        await putAudio(audioId, {
+          blob: file,
+          peaks,
+          peaksPerSec: PEAKS_PER_SEC,
+          sampleRate: buffer.sampleRate,
+          channels,
+          filename: file.name,
+        });
         const clip: Clip = {
           id: uid("c"),
           trackId,
@@ -141,6 +160,7 @@ export const useStore = create<Store>((set, get) => ({
         const track: Track = {
           id: trackId,
           name: file.name,
+          audioId,
           buffer,
           peaks,
           peaksPerSec: PEAKS_PER_SEC,
