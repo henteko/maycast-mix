@@ -1,5 +1,7 @@
 # Maycast Mix
 
+https://mix.maycast.henteko07.com/
+
 Browser-based multi-track audio editor for podcasts, radio shows, and short-form audio.
 All decoding, mixing, and MP3 encoding runs locally in the browser — your audio never
 leaves your machine.
