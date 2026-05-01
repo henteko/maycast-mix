@@ -536,6 +536,25 @@ body {
   white-space: nowrap;
 }
 
+.th-remove {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  color: var(--fg-subtle);
+  cursor: default;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease, background 120ms ease;
+}
+.track:hover .th-remove,
+.track-header:focus-within .th-remove { opacity: 1; }
+.th-remove:hover { background: rgba(220, 38, 38, 0.1); color: var(--rec); }
+
 .th-row2 {
   display: flex;
   align-items: center;

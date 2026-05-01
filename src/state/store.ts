@@ -68,6 +68,7 @@ interface Actions {
   setTrackVolume: (trackId: string, v: number) => void;
   toggleMute: (trackId: string) => void;
   toggleSolo: (trackId: string) => void;
+  removeTrack: (trackId: string) => void;
 
   // Transport
   setPlayhead: (t: number) => void;
@@ -372,6 +373,26 @@ export const useStore = create<Store>((set, get) => ({
       past: pushSnap(s.past, snap(s)),
       future: [],
     }));
+  },
+
+  removeTrack(trackId) {
+    set((s) => {
+      const track = s.tracks.find((t) => t.id === trackId);
+      if (!track) return {};
+      // Drop any selected clip ids that lived on the removed track. The
+      // encoded audio blob is intentionally NOT deleted from IndexedDB so
+      // that ⌘Z can resurrect the track and a subsequent save can re-write
+      // the project record referencing the same audioId.
+      const removedClipIds = new Set(track.clips.map((c) => c.id));
+      const nextSelection = new Set<string>();
+      for (const id of s.selection) if (!removedClipIds.has(id)) nextSelection.add(id);
+      return {
+        tracks: s.tracks.filter((t) => t.id !== trackId),
+        selection: nextSelection,
+        past: pushSnap(s.past, snap(s)),
+        future: [],
+      };
+    });
   },
 
   setPlayhead(t) {

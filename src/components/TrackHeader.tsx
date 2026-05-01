@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { gainToDb, useStore } from "../state/store";
 import type { Track } from "../types";
+import { Icon } from "./Icon";
 
 interface Props {
   track: Track;
@@ -11,6 +12,7 @@ export const TrackHeader = memo(function TrackHeader({ track, selected }: Props)
   const setVolume = useStore((s) => s.setTrackVolume);
   const toggleMute = useStore((s) => s.toggleMute);
   const toggleSolo = useStore((s) => s.toggleSolo);
+  const removeTrack = useStore((s) => s.removeTrack);
   const selectTrack = useStore((s) => s.selectTrack);
   const pushHistory = useStore((s) => s.pushHistory);
 
@@ -46,6 +48,17 @@ export const TrackHeader = memo(function TrackHeader({ track, selected }: Props)
         <div className="track-name" title={track.name}>
           {track.name}
         </div>
+        <button
+          className="th-remove"
+          title="Remove track (⌘Z to undo)"
+          aria-label={`Remove track ${track.name}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            removeTrack(track.id);
+          }}
+        >
+          <Icon name="trash" size={12} />
+        </button>
       </div>
       <div className="track-meta">{track.meta}</div>
       <div className="th-row2">
