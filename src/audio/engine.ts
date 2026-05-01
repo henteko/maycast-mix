@@ -112,8 +112,13 @@ export class PlaybackEngine {
 
   pause() {
     if (!this.playing) return;
+    // Freeze the current playback position into startPlayhead so subsequent
+    // currentTime() calls (after `playing` flips to false) keep returning
+    // where playback actually stopped — not where it started.
+    const stoppedAt = this.currentTime();
     this.stopAllSources();
     this.playing = false;
+    this.startPlayhead = stoppedAt;
   }
 
   setVolume(v: number) {
