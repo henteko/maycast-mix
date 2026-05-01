@@ -31,9 +31,27 @@ export async function renderMix(
 
     for (const clip of track.clips) {
       if (clip.duration <= 0) continue;
+      const fadeIn = Math.max(0, Math.min(clip.fadeIn ?? 0, clip.duration));
+      const fadeOut = Math.max(
+        0,
+        Math.min(clip.fadeOut ?? 0, clip.duration - fadeIn),
+      );
+
+      const clipGain = offline.createGain();
+      clipGain.connect(trackGain);
+      if (fadeIn > 0) {
+        clipGain.gain.setValueAtTime(0, clip.start);
+        clipGain.gain.linearRampToValueAtTime(1, clip.start + fadeIn);
+      }
+      if (fadeOut > 0) {
+        const fadeOutStart = clip.start + clip.duration - fadeOut;
+        clipGain.gain.setValueAtTime(1, fadeOutStart);
+        clipGain.gain.linearRampToValueAtTime(0, fadeOutStart + fadeOut);
+      }
+
       const src = offline.createBufferSource();
       src.buffer = track.buffer;
-      src.connect(trackGain);
+      src.connect(clipGain);
       try {
         src.start(clip.start, clip.offset, clip.duration);
       } catch {

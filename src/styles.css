@@ -686,6 +686,51 @@ body {
   height: 100%;
 }
 
+/* Fade overlays — translucent triangles showing the muted region of the
+   clip. fade-in triangle fills the upper-left (mute decreases →); fade-out
+   fills the upper-right (mute increases →). */
+.clip-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: oklch(0% 0 0 / 0.32);
+  pointer-events: none;
+  z-index: 2;
+}
+.clip-fade-in {
+  left: 0;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.clip-fade-out {
+  right: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+/* Tiny grab handles at the top corners. Centered horizontally on the
+   fade endpoint; live just under the clip head so they don't overlap the
+   filename. Always visible (subtle), light up on hover/selection. */
+.clip-fade-handle {
+  position: absolute;
+  top: 18px;
+  width: 8px;
+  height: 8px;
+  cursor: ew-resize;
+  z-index: 3;
+  background: var(--clip-head, oklch(88% 0.06 250));
+  border: 1px solid var(--clip-border, oklch(80% 0.08 250));
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 100ms ease, background 100ms ease;
+}
+.clip-fade-handle-in { transform: translateX(-50%); }
+.clip-fade-handle-out { transform: translateX(50%); }
+.clip-fade-handle:hover,
+.clip.is-selected .clip-fade-handle {
+  opacity: 1;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 /* Selection range overlay */
 .sel-range {
   position: absolute;
