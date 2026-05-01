@@ -13,6 +13,10 @@ export function TopBar({ onExport, onToggleTweaks }: Props) {
   const tracks = useStore((s) => s.tracks);
   const exporting = useStore((s) => s.exporting);
   const addFiles = useStore((s) => s.addFiles);
+  const undo = useStore((s) => s.undo);
+  const redo = useStore((s) => s.redo);
+  const canUndo = useStore((s) => s.past.length > 0);
+  const canRedo = useStore((s) => s.future.length > 0);
   const trackCount = tracks.length;
   const len = projectLength(tracks);
 
@@ -45,6 +49,24 @@ export function TopBar({ onExport, onToggleTweaks }: Props) {
         <button className="btn btn-ghost" onClick={onPick}>
           <Icon name="upload" size={14} />
           音声を追加
+        </button>
+        <button
+          className="icon-btn"
+          title="元に戻す (⌘Z)"
+          onClick={undo}
+          disabled={!canUndo}
+          style={!canUndo ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+        >
+          <Icon name="undo" size={15} />
+        </button>
+        <button
+          className="icon-btn"
+          title="やり直し (⌘⇧Z)"
+          onClick={redo}
+          disabled={!canRedo}
+          style={!canRedo ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+        >
+          <Icon name="redo" size={15} />
         </button>
         <button className="icon-btn" title="Tweaks" onClick={onToggleTweaks}>
           <Icon name="sliders" size={15} />
@@ -99,6 +121,7 @@ function showHelp() {
       "⌘O        音声を追加",
       "⌘A        全選択",
       "Delete    選択中のクリップを削除",
+      "⌘Z / ⌘⇧Z  元に戻す / やり直し",
       "Home/End  先頭 / 末尾",
       "⌘+/-      ズームイン / アウト",
     ].join("\n"),

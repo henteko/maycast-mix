@@ -39,6 +39,12 @@ export function useKeyboard({
         s.splitAtPlayhead();
         return;
       }
+      if (mod && (e.key === "z" || e.key === "Z")) {
+        e.preventDefault();
+        if (e.shiftKey) s.redo();
+        else s.undo();
+        return;
+      }
       if (mod && (e.key === "o" || e.key === "O")) {
         e.preventDefault();
         onOpenFile();

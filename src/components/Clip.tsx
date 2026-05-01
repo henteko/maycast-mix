@@ -70,6 +70,9 @@ export const Clip = memo(function Clip({ clip, track, pxPerSec, selected }: Prop
     const beginDragIfNeeded = () => {
       if (dragging) return;
       dragging = true;
+      // Single undo step for the entire drag — captured the moment we
+      // commit to actually moving (after the threshold is crossed).
+      useStore.getState().pushHistory();
       // Snapshot the CURRENT selection (after the mousedown selection edits).
       const cur = useStore.getState();
       const sel = cur.selection;

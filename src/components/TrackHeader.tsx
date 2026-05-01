@@ -12,8 +12,11 @@ export const TrackHeader = memo(function TrackHeader({ track, selected }: Props)
   const toggleMute = useStore((s) => s.toggleMute);
   const toggleSolo = useStore((s) => s.toggleSolo);
   const selectTrack = useStore((s) => s.selectTrack);
+  const pushHistory = useStore((s) => s.pushHistory);
 
   const onVolMouseDown = (e: React.MouseEvent) => {
+    // One undo step covers the whole slider drag.
+    pushHistory();
     const el = e.currentTarget as HTMLDivElement;
     const update = (clientX: number) => {
       const r = el.getBoundingClientRect();

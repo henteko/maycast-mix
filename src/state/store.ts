@@ -9,6 +9,14 @@ const PEAKS_PER_SEC = 20;
 let _id = 0;
 const uid = (prefix: string) => `${prefix}_${++_id}_${Date.now().toString(36)}`;
 
+/** Snapshot of the editable, undoable slice of the store. */
+interface HistorySnapshot {
+  tracks: Track[];
+  selection: Set<string>;
+}
+
+const MAX_HISTORY = 50;
+
 interface State {
   sessionName: string;
   tracks: Track[];
@@ -24,6 +32,9 @@ interface State {
   /** Last error/info message to surface in the status bar */
   status: string;
   exporting: boolean;
+  /** Edit history. `past` is for undo, `future` is for redo. */
+  past: HistorySnapshot[];
+  future: HistorySnapshot[];
 }
 
 interface Actions {
@@ -64,6 +75,16 @@ interface Actions {
   // Status
   setStatus: (s: string) => void;
   setExporting: (b: boolean) => void;
+
+  // History
+  /**
+   * Snapshot the current undoable slice (tracks + selection) and clear the
+   * redo stack. Call BEFORE the first edit in a logical user action — drag
+   * handlers call this on drag start, single-shot edits push internally.
+   */
+  pushHistory: () => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 export type Store = State & Actions;
@@ -86,6 +107,8 @@ export const useStore = create<Store>((set, get) => ({
   loadingFiles: [],
   status: "準備完了",
   exporting: false,
+  past: [],
+  future: [],
 
   async addFiles(files) {
     if (!files.length) return;
@@ -99,6 +122,9 @@ export const useStore = create<Store>((set, get) => ({
     set((s) => ({
       loadingFiles: [...s.loadingFiles, ...loaders],
       status: `読み込み中… ${files[0].name}${files.length > 1 ? ` 他${files.length - 1}件` : ""}`,
+      // Snapshot the pre-import state so a single ⌘Z removes the whole batch.
+      past: pushSnap(s.past, snap(s)),
+      future: [],
     }));
 
     const loadOne = async (file: File, loaderId: string, paletteIdx: number) => {
@@ -242,7 +268,12 @@ export const useStore = create<Store>((set, get) => ({
       for (const t of tracks) {
         for (const c of t.clips) if (selection.has(c.id) && !newSelection.has(c.id)) newSelection.add(c.id);
       }
-      set({ tracks: updatedTracks, selection: newSelection });
+      set((s) => ({
+        tracks: updatedTracks,
+        selection: newSelection,
+        past: pushSnap(s.past, snap(s)),
+        future: [],
+      }));
     }
   },
 
@@ -275,7 +306,12 @@ export const useStore = create<Store>((set, get) => ({
         if (!track.clips.some((c) => s.selection.has(c.id))) return track;
         return { ...track, clips: track.clips.filter((c) => !s.selection.has(c.id)) };
       });
-      return { tracks, selection: new Set<string>() };
+      return {
+        tracks,
+        selection: new Set<string>(),
+        past: pushSnap(s.past, snap(s)),
+        future: [],
+      };
     });
   },
 
@@ -293,21 +329,36 @@ export const useStore = create<Store>((set, get) => ({
         });
         return { ...track, clips: [...track.clips, ...additions] };
       });
-      return { tracks, selection: newSelection };
+      return {
+        tracks,
+        selection: newSelection,
+        past: pushSnap(s.past, snap(s)),
+        future: [],
+      };
     });
   },
 
   setTrackVolume(trackId, v) {
+    // No history push: callers (slider drag) call pushHistory() once at the
+    // start of a drag so the whole drag becomes a single undo step.
     const vv = Math.max(0, Math.min(1, v));
     set((s) => ({ tracks: updateTrack(s.tracks, trackId, (t) => ({ ...t, volume: vv })) }));
   },
 
   toggleMute(trackId) {
-    set((s) => ({ tracks: updateTrack(s.tracks, trackId, (t) => ({ ...t, mute: !t.mute })) }));
+    set((s) => ({
+      tracks: updateTrack(s.tracks, trackId, (t) => ({ ...t, mute: !t.mute })),
+      past: pushSnap(s.past, snap(s)),
+      future: [],
+    }));
   },
 
   toggleSolo(trackId) {
-    set((s) => ({ tracks: updateTrack(s.tracks, trackId, (t) => ({ ...t, solo: !t.solo })) }));
+    set((s) => ({
+      tracks: updateTrack(s.tracks, trackId, (t) => ({ ...t, solo: !t.solo })),
+      past: pushSnap(s.past, snap(s)),
+      future: [],
+    }));
   },
 
   setPlayhead(t) {
@@ -337,7 +388,50 @@ export const useStore = create<Store>((set, get) => ({
   setExporting(b) {
     set({ exporting: b });
   },
+
+  pushHistory() {
+    set((s) => ({ past: pushSnap(s.past, snap(s)), future: [] }));
+  },
+
+  undo() {
+    set((s) => {
+      if (s.past.length === 0) return {};
+      const prev = s.past[s.past.length - 1];
+      return {
+        tracks: prev.tracks,
+        selection: prev.selection,
+        past: s.past.slice(0, -1),
+        future: pushSnap(s.future, snap(s)),
+      };
+    });
+  },
+
+  redo() {
+    set((s) => {
+      if (s.future.length === 0) return {};
+      const next = s.future[s.future.length - 1];
+      return {
+        tracks: next.tracks,
+        selection: next.selection,
+        past: pushSnap(s.past, snap(s)),
+        future: s.future.slice(0, -1),
+      };
+    });
+  },
 }));
+
+/** Take a snapshot of the undoable slice of the current state. */
+function snap(s: { tracks: Track[]; selection: Set<string> }): HistorySnapshot {
+  return { tracks: s.tracks, selection: s.selection };
+}
+
+/** Push a snapshot onto a history stack, capped at MAX_HISTORY entries. */
+function pushSnap(stack: HistorySnapshot[], item: HistorySnapshot): HistorySnapshot[] {
+  if (stack.length >= MAX_HISTORY) {
+    return [...stack.slice(stack.length - MAX_HISTORY + 1), item];
+  }
+  return [...stack, item];
+}
 
 // ─── Selectors ────────────────────────────────────────────────────────────
 

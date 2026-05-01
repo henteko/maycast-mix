@@ -148,6 +148,18 @@ export function Icon({ name, size = 16 }: Props) {
         <line x1="5" x2="19" y1="12" y2="12" />
       </svg>
     ),
+    undo: (
+      <svg {...props}>
+        <path d="M3 7v6h6" />
+        <path d="M21 17a9 9 0 0 0-15-6.7L3 13" />
+      </svg>
+    ),
+    redo: (
+      <svg {...props}>
+        <path d="M21 7v6h-6" />
+        <path d="M3 17a9 9 0 0 1 15-6.7L21 13" />
+      </svg>
+    ),
     sliders: (
       <svg {...props}>
         <line x1="4" x2="4" y1="21" y2="14" />
