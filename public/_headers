@@ -1,0 +1,9 @@
+# Hashed Vite asset filenames are content-addressed, so they can be cached
+# forever. Anything that isn't an asset gets revalidated each request.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+  Permissions-Policy: interest-cohort=()

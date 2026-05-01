@@ -1,0 +1,3 @@
+# SPA fallback — every unknown path resolves to the app shell. Currently the
+# editor doesn't use client-side routing, but this future-proofs deep links.
+/*    /index.html   200
