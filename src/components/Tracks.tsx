@@ -114,12 +114,6 @@ export function Tracks({ onSeek, pxPerSec, projectLength }: Props) {
             contentHeight={contentHeight}
           />
         )}
-        <SplitPreviewOverlay
-          pxPerSec={pxPerSec}
-          trackCount={tracks.length}
-          laneWidth={laneWidth}
-          contentHeight={contentHeight}
-        />
       </div>
 
       <input
@@ -216,7 +210,6 @@ function PlayheadOverlay({
   contentHeight: number;
 }) {
   const playhead = useStore((s) => s.playhead);
-  const tool = useStore((s) => s.tool);
   const phLeft = HEADER_W + playhead * pxPerSec;
   const totalWidth = HEADER_W + laneWidth;
   return (
@@ -233,7 +226,7 @@ function PlayheadOverlay({
         }}
       >
         <div
-          className={`playhead ${tool === "cut" ? "is-cut" : ""}`}
+          className="playhead"
           style={{
             left: phLeft,
             top: RULER_H - 6,
@@ -264,105 +257,6 @@ function PlayheadOverlay({
   );
 }
 
-function SplitPreviewOverlay({
-  pxPerSec,
-  trackCount,
-  laneWidth,
-  contentHeight,
-}: {
-  pxPerSec: number;
-  trackCount: number;
-  laneWidth: number;
-  contentHeight: number;
-}) {
-  const tool = useStore((s) => s.tool);
-  if (tool !== "cut" || trackCount === 0) return null;
-  return (
-    <SplitPreviewActive
-      pxPerSec={pxPerSec}
-      laneWidth={laneWidth}
-      contentHeight={contentHeight}
-    />
-  );
-}
-
-function SplitPreviewActive({
-  pxPerSec,
-  laneWidth,
-  contentHeight,
-}: {
-  pxPerSec: number;
-  laneWidth: number;
-  contentHeight: number;
-}) {
-  const playhead = useStore((s) => s.playhead);
-  const tracks = useStore((s) => s.tracks);
-  const selection = useStore((s) => s.selection);
-  const trackHeight = useStore((s) => s.tweaks.trackHeight);
-
-  const items: { x: number; y: number; h: number }[] = [];
-  for (let i = 0; i < tracks.length; i++) {
-    const track = tracks[i];
-    for (const clip of track.clips) {
-      if (
-        selection.has(clip.id) &&
-        playhead > clip.start &&
-        playhead < clip.start + clip.duration
-      ) {
-        items.push({
-          x: HEADER_W + playhead * pxPerSec,
-          y: RULER_H + i * trackHeight,
-          h: trackHeight,
-        });
-      }
-    }
-  }
-  if (items.length === 0) return null;
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        height: contentHeight,
-        width: HEADER_W + laneWidth,
-        pointerEvents: "none",
-        zIndex: 7,
-      }}
-    >
-      {items.map((it, i) => (
-        <div
-          key={i}
-          className="clip-split-preview"
-          style={{ left: it.x, top: it.y, height: it.h, width: 0, position: "absolute" }}
-        >
-          <div className="clip-split-line" />
-          {i === 0 && (
-            <div className="clip-split-badge">
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="6" cy="6" r="3" />
-                <circle cx="6" cy="18" r="3" />
-                <line x1="20" x2="8.12" y1="4" y2="15.88" />
-                <line x1="14.47" x2="20" y1="14.48" y2="20" />
-                <line x1="8.12" x2="12" y1="8.12" y2="12" />
-              </svg>
-              <span>分割</span>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function formatPlayheadTC(s: number): string {
   const mm = Math.floor(s / 60).toString().padStart(2, "0");

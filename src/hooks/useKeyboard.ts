@@ -77,14 +77,11 @@ export function useKeyboard({
         return;
       }
 
-      // Tool shortcuts (no modifier)
+      // Tool shortcuts (no modifier).
+      // V and M both pick the unified select+move tool.
       if (!mod && !e.shiftKey && !e.altKey) {
-        if (e.key === "v" || e.key === "V") {
+        if (e.key === "v" || e.key === "V" || e.key === "m" || e.key === "M") {
           s.setTool("select");
-        } else if (e.key === "m" || e.key === "M") {
-          s.setTool("move");
-        } else if (e.key === "c" || e.key === "C") {
-          s.setTool("cut");
         } else if (e.key === "h" || e.key === "H") {
           s.setTool("hand");
         }

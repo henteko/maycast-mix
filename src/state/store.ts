@@ -38,8 +38,12 @@ interface Actions {
 
   // Editing
   splitAtPlayhead: () => void;
-  moveClip: (id: string, deltaSec: number) => void;
-  moveClipTo: (id: string, newStart: number) => void;
+  /**
+   * Atomically set new start positions for a batch of clips. Used during
+   * drag so that multi-selected clips all advance by the same delta on every
+   * mousemove.
+   */
+  setClipStarts: (updates: Array<{ id: string; start: number }>) => void;
   deleteSelection: () => void;
   duplicateSelection: () => void;
 
@@ -242,13 +246,26 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
 
-  moveClip(id, deltaSec) {
-    set((s) => ({ tracks: updateClipInTracks(s.tracks, id, (c) => ({ ...c, start: Math.max(0, c.start + deltaSec) })) }));
-  },
-
-  moveClipTo(id, newStart) {
-    const clamped = Math.max(0, newStart);
-    set((s) => ({ tracks: updateClipInTracks(s.tracks, id, (c) => ({ ...c, start: clamped })) }));
+  setClipStarts(updates) {
+    if (updates.length === 0) return;
+    const map = new Map(updates.map((u) => [u.id, Math.max(0, u.start)]));
+    set((s) => {
+      const tracks = s.tracks.map((track) => {
+        // Skip the entire track if it has no clips being updated.
+        if (!track.clips.some((c) => map.has(c.id))) return track;
+        let changed = false;
+        const newClips = track.clips.map((c) => {
+          const next = map.get(c.id);
+          if (next != null && next !== c.start) {
+            changed = true;
+            return { ...c, start: next };
+          }
+          return c;
+        });
+        return changed ? { ...track, clips: newClips } : track;
+      });
+      return { tracks };
+    });
   },
 
   deleteSelection() {
@@ -363,24 +380,3 @@ function updateTrack(
   return next;
 }
 
-/**
- * Apply `f` to the single clip whose id === clipId. Both the affected track
- * and the affected clip get new references; everything else stays referentially
- * stable.
- */
-function updateClipInTracks(
-  tracks: Track[],
-  clipId: string,
-  f: (c: Clip) => Clip,
-): Track[] {
-  for (let ti = 0; ti < tracks.length; ti++) {
-    const ci = tracks[ti].clips.findIndex((c) => c.id === clipId);
-    if (ci === -1) continue;
-    const next = tracks.slice();
-    const newClips = tracks[ti].clips.slice();
-    newClips[ci] = f(tracks[ti].clips[ci]);
-    next[ti] = { ...tracks[ti], clips: newClips };
-    return next;
-  }
-  return tracks;
-}

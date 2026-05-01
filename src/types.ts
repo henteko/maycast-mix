@@ -1,4 +1,9 @@
-export type Tool = "select" | "move" | "cut" | "hand";
+/**
+ * Editor tools. Select handles click-to-select and drag-to-move; Hand
+ * scrolls the timeline. Splitting at the playhead is invoked via ⌘B or
+ * the toolbar split button rather than a dedicated tool.
+ */
+export type Tool = "select" | "hand";
 
 export type WaveStyle = "bars" | "line" | "filled";
 

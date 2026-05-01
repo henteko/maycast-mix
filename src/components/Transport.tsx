@@ -60,24 +60,10 @@ export function Transport({ onPlayPause, onSeek }: Props) {
       <div className="tool-group" role="toolbar">
         <button
           className={`tool ${tool === "select" ? "is-active" : ""}`}
-          title="選択 (V)"
+          title="選択・移動 (V / M)"
           onClick={() => setTool("select")}
         >
           <Icon name="select" size={14} />
-        </button>
-        <button
-          className={`tool ${tool === "move" ? "is-active" : ""}`}
-          title="移動 (M)"
-          onClick={() => setTool("move")}
-        >
-          <Icon name="move" size={14} />
-        </button>
-        <button
-          className={`tool ${tool === "cut" ? "is-active" : ""}`}
-          title="カット (C)"
-          onClick={() => setTool("cut")}
-        >
-          <Icon name="scissors" size={14} />
         </button>
         <button
           className={`tool ${tool === "hand" ? "is-active" : ""}`}
