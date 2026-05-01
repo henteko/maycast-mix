@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { TopBar } from "./components/TopBar";
 import { Transport } from "./components/Transport";
 import { Tracks } from "./components/Tracks";
 import { StatusBar } from "./components/StatusBar";
-import { TweaksPanel } from "./components/TweaksPanel";
 import { useKeyboard } from "./hooks/useKeyboard";
 import { PlaybackEngine } from "./audio/engine";
 import { renderMix } from "./audio/mixdown";
@@ -16,7 +15,6 @@ export function App() {
   const tracks = useStore((s) => s.tracks);
   const zoom = useStore((s) => s.zoom);
   const tool = useStore((s) => s.tool);
-  const tweaks = useStore((s) => s.tweaks);
   const playing = useStore((s) => s.playing);
   const setPlaying = useStore((s) => s.setPlaying);
   const setPlayhead = useStore((s) => s.setPlayhead);
@@ -27,29 +25,10 @@ export function App() {
 
   const engineRef = useRef<PlaybackEngine | null>(null);
   const rafRef = useRef<number | null>(null);
-  const [tweaksOpen, setTweaksOpen] = useState(false);
 
   // Reactively recompute project length whenever tracks change.
   const projectLength = useMemo(() => calcProjectLength(tracks), [tracks]);
   const pxPerSec = BASE_PX_PER_SEC * zoom;
-
-  // ─── Apply tweaks to CSS variables ───
-  useEffect(() => {
-    const h = tweaks.accentHue;
-    const root = document.documentElement;
-    root.style.setProperty("--accent", `oklch(56% 0.16 ${h})`);
-    root.style.setProperty("--accent-strong", `oklch(48% 0.18 ${h})`);
-    root.style.setProperty("--accent-soft", `oklch(94% 0.04 ${h})`);
-    root.style.setProperty("--sel", `oklch(56% 0.16 ${h} / 0.18)`);
-    root.style.setProperty("--sel-edge", `oklch(56% 0.16 ${h} / 0.55)`);
-  }, [tweaks.accentHue]);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--track-h",
-      `${tweaks.trackHeight}px`,
-    );
-  }, [tweaks.trackHeight]);
 
   // ─── Engine lifecycle ───
   useEffect(() => {
@@ -240,10 +219,7 @@ export function App() {
 
   return (
     <div className="app">
-      <TopBar
-        onExport={handleExport}
-        onToggleTweaks={() => setTweaksOpen((v) => !v)}
-      />
+      <TopBar onExport={handleExport} />
       <Transport onPlayPause={handlePlayPause} onSeek={handleSeek} />
       <div className="editor">
         <Tracks
@@ -253,7 +229,6 @@ export function App() {
         />
       </div>
       <StatusBar />
-      <TweaksPanel open={tweaksOpen} onClose={() => setTweaksOpen(false)} />
       <input
         id="__hidden_file_picker"
         type="file"

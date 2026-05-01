@@ -54,10 +54,3 @@ export interface LoadingFile {
   name: string;
 }
 
-export interface Tweaks {
-  trackHeight: number;
-  waveStyle: WaveStyle;
-  accentHue: number;
-  showSelection: boolean;
-  showPlayhead: boolean;
-}

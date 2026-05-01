@@ -17,7 +17,6 @@ interface Props {
  */
 export const Clip = memo(function Clip({ clip, track, pxPerSec, selected }: Props) {
   const tool = useStore((s) => s.tool);
-  const waveStyle = useStore((s) => s.tweaks.waveStyle);
   const selectClip = useStore((s) => s.selectClip);
   const setClipStarts = useStore((s) => s.setClipStarts);
   const setPlaying = useStore((s) => s.setPlaying);
@@ -145,7 +144,7 @@ export const Clip = memo(function Clip({ clip, track, pxPerSec, selected }: Prop
         <span className="clip-len">{formatDur(clip.duration)}</span>
       </div>
       <div className="clip-wave">
-        <Waveform peaks={visiblePeaks} color={track.palette.waveColor} style={waveStyle} />
+        <Waveform peaks={visiblePeaks} color={track.palette.waveColor} />
       </div>
     </div>
   );

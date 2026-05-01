@@ -4,10 +4,9 @@ import { projectLength, useStore } from "../state/store";
 
 interface Props {
   onExport: () => void;
-  onToggleTweaks: () => void;
 }
 
-export function TopBar({ onExport, onToggleTweaks }: Props) {
+export function TopBar({ onExport }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const sessionName = useStore((s) => s.sessionName);
   const tracks = useStore((s) => s.tracks);
@@ -68,9 +67,6 @@ export function TopBar({ onExport, onToggleTweaks }: Props) {
           style={!canRedo ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
         >
           <Icon name="redo" size={15} />
-        </button>
-        <button className="icon-btn" title="Tweaks" onClick={onToggleTweaks}>
-          <Icon name="sliders" size={15} />
         </button>
         <button className="icon-btn" title="ヘルプ" onClick={showHelp}>
           <Icon name="help" size={15} />

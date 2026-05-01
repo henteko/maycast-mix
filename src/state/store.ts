@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Clip, LoadingFile, Tool, Track, Tweaks } from "../types";
+import type { Clip, LoadingFile, Tool, Track } from "../types";
 import { decodeFile } from "../audio/decoder";
 import { computePeaks } from "../audio/peaks";
 import { paletteForIndex } from "./palettes";
@@ -26,7 +26,6 @@ interface State {
   zoom: number;
   tool: Tool;
   playing: boolean;
-  tweaks: Tweaks;
   /** Files currently being decoded — rendered as ghost rows in the timeline. */
   loadingFiles: LoadingFile[];
   /** Last error/info message to surface in the status bar */
@@ -71,9 +70,6 @@ interface Actions {
   setTool: (t: Tool) => void;
   setPlaying: (b: boolean) => void;
 
-  // Tweaks
-  setTweak: <K extends keyof Tweaks>(k: K, v: Tweaks[K]) => void;
-
   // Status
   setStatus: (s: string) => void;
   setExporting: (b: boolean) => void;
@@ -100,13 +96,6 @@ export const useStore = create<Store>((set, get) => ({
   zoom: 1.4,
   tool: "select",
   playing: false,
-  tweaks: {
-    trackHeight: 96,
-    waveStyle: "bars",
-    accentHue: 268,
-    showSelection: true,
-    showPlayhead: true,
-  },
   loadingFiles: [],
   status: "準備完了",
   exporting: false,
@@ -379,10 +368,6 @@ export const useStore = create<Store>((set, get) => ({
 
   setPlaying(b) {
     set({ playing: b });
-  },
-
-  setTweak(k, v) {
-    set((s) => ({ tweaks: { ...s.tweaks, [k]: v } }));
   },
 
   setStatus(s) {

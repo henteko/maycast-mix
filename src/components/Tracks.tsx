@@ -14,6 +14,7 @@ interface Props {
 
 const HEADER_W = 232;
 const RULER_H = 28;
+const TRACK_H = 96;
 const ADD_TRACK_H = 56;
 /** Headroom in seconds added past the last clip so users have room to drag. */
 const TIMELINE_HEADROOM_SEC = 20;
@@ -22,8 +23,6 @@ export function Tracks({ onSeek, pxPerSec, projectLength }: Props) {
   const tracks = useStore((s) => s.tracks);
   const selection = useStore((s) => s.selection);
   const loadingFiles = useStore((s) => s.loadingFiles);
-  const showPlayhead = useStore((s) => s.tweaks.showPlayhead);
-  const showSelection = useStore((s) => s.tweaks.showSelection);
   const addFiles = useStore((s) => s.addFiles);
   const clearSelection = useStore((s) => s.clearSelection);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -52,11 +51,10 @@ export function Tracks({ onSeek, pxPerSec, projectLength }: Props) {
   const empty = tracks.length === 0 && loadingFiles.length === 0;
   const timelineSec = Math.max(60, projectLength + TIMELINE_HEADROOM_SEC);
   const laneWidth = timelineSec * pxPerSec;
-  const trackHeight = useStore((s) => s.tweaks.trackHeight);
   const rowCount = tracks.length + loadingFiles.length;
   // Confine overlays to the actual rows so the playhead stops at the bottom of
   // the last track instead of running to the bottom of the flex-stretched box.
-  const contentHeight = RULER_H + rowCount * trackHeight + ADD_TRACK_H;
+  const contentHeight = RULER_H + rowCount * TRACK_H + ADD_TRACK_H;
 
   return (
     <div className="tracks-wrap" onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
@@ -64,7 +62,7 @@ export function Tracks({ onSeek, pxPerSec, projectLength }: Props) {
         className="tracks"
         onClick={(e) => {
           const cls = (e.target as HTMLElement).classList;
-          if ((cls.contains("track-lane") || cls.contains("tracks")) && showSelection) {
+          if (cls.contains("track-lane") || cls.contains("tracks")) {
             clearSelection();
           }
         }}
@@ -107,7 +105,7 @@ export function Tracks({ onSeek, pxPerSec, projectLength }: Props) {
           </div>
         </div>
 
-        {showPlayhead && tracks.length > 0 && (
+        {tracks.length > 0 && (
           <PlayheadOverlay
             pxPerSec={pxPerSec}
             laneWidth={laneWidth}
