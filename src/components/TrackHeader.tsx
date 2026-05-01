@@ -51,7 +51,7 @@ export const TrackHeader = memo(function TrackHeader({ track, selected }: Props)
       <div className="th-row2">
         <button
           className={`th-btn ${track.mute ? "is-on-m" : ""}`}
-          title="ミュート"
+          title="Mute"
           onClick={(e) => {
             e.stopPropagation();
             toggleMute(track.id);
@@ -61,7 +61,7 @@ export const TrackHeader = memo(function TrackHeader({ track, selected }: Props)
         </button>
         <button
           className={`th-btn ${track.solo ? "is-on-s" : ""}`}
-          title="ソロ"
+          title="Solo"
           onClick={(e) => {
             e.stopPropagation();
             toggleSolo(track.id);

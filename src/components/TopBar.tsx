@@ -40,11 +40,11 @@ export function TopBar({ onExport }: Props) {
       <div className="topbar-actions">
         <button className="btn btn-ghost" onClick={onPick}>
           <Icon name="upload" size={14} />
-          音声を追加
+          Add audio
         </button>
         <button
           className="icon-btn"
-          title="元に戻す (⌘Z)"
+          title="Undo (⌘Z)"
           onClick={undo}
           disabled={!canUndo}
           style={!canUndo ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
@@ -53,14 +53,14 @@ export function TopBar({ onExport }: Props) {
         </button>
         <button
           className="icon-btn"
-          title="やり直し (⌘⇧Z)"
+          title="Redo (⌘⇧Z)"
           onClick={redo}
           disabled={!canRedo}
           style={!canRedo ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
         >
           <Icon name="redo" size={15} />
         </button>
-        <button className="icon-btn" title="ヘルプ" onClick={showHelp}>
+        <button className="icon-btn" title="Help" onClick={showHelp}>
           <Icon name="help" size={15} />
         </button>
         <div style={{ width: 8 }} />
@@ -77,9 +77,9 @@ export function TopBar({ onExport }: Props) {
           <Icon name="download" size={14} />
           {exporting
             ? exportProgress != null
-              ? `書き出し中… ${Math.round(exportProgress * 100)}%`
-              : "書き出し中…"
-            : "MP3で書き出し"}
+              ? `Exporting ${Math.round(exportProgress * 100)}%`
+              : "Exporting…"
+            : "Export MP3"}
         </button>
         <input
           ref={fileRef}
@@ -97,18 +97,18 @@ export function TopBar({ onExport }: Props) {
 function showHelp() {
   alert(
     [
-      "Maycast Mix — キーボードショートカット",
+      "Maycast Mix — Keyboard shortcuts",
       "",
-      "Space     再生 / 一時停止",
-      "V / M     選択・移動ツール",
-      "H         パンツール",
-      "⌘B        再生位置で選択トラックを分割",
-      "⌘O        音声を追加",
-      "⌘A        全選択",
-      "Delete    選択中のクリップを削除",
-      "⌘Z / ⌘⇧Z  元に戻す / やり直し",
-      "Home/End  先頭 / 末尾",
-      "⌘+/-      ズームイン / アウト",
+      "Space     Play / Pause",
+      "V / M     Select / Move tool",
+      "H         Pan tool",
+      "⌘B        Split selected tracks at the playhead",
+      "⌘O        Add audio file(s)",
+      "⌘A        Select all clips",
+      "Delete    Delete selected clips",
+      "⌘Z / ⌘⇧Z  Undo / Redo",
+      "Home/End  Jump to start / end",
+      "⌘+/-      Zoom in / out",
     ].join("\n"),
   );
 }

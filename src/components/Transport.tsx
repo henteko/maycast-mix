@@ -33,16 +33,16 @@ export function Transport({ onPlayPause, onSeek }: Props) {
   return (
     <div className="transport">
       <div className="transport-group">
-        <button className="tg-btn" title="先頭へ" onClick={() => onSeek(0)}>
+        <button className="tg-btn" title="Jump to start" onClick={() => onSeek(0)}>
           <Icon name="skip-back" size={14} />
         </button>
-        <button className="tg-btn play" title="再生" onClick={onPlayPause}>
+        <button className="tg-btn play" title="Play / Pause" onClick={onPlayPause}>
           <Icon name={playing ? "pause" : "play"} size={15} />
         </button>
-        <button className="tg-btn" title="末尾へ" onClick={() => onSeek(total)}>
+        <button className="tg-btn" title="Jump to end" onClick={() => onSeek(total)}>
           <Icon name="skip-fwd" size={14} />
         </button>
-        <button className="tg-btn" title="ループ">
+        <button className="tg-btn" title="Loop">
           <Icon name="loop" size={14} />
         </button>
       </div>
@@ -60,14 +60,14 @@ export function Transport({ onPlayPause, onSeek }: Props) {
       <div className="tool-group" role="toolbar">
         <button
           className={`tool ${tool === "select" ? "is-active" : ""}`}
-          title="選択・移動 (V / M)"
+          title="Select / Move (V / M)"
           onClick={() => setTool("select")}
         >
           <Icon name="select" size={14} />
         </button>
         <button
           className={`tool ${tool === "hand" ? "is-active" : ""}`}
-          title="パン (H)"
+          title="Pan (H)"
           onClick={() => setTool("hand")}
         >
           <Icon name="hand" size={14} />
@@ -117,27 +117,28 @@ export function Transport({ onPlayPause, onSeek }: Props) {
       {selectedClipCount > 0 && (
         <div className="selection-summary">
           <span className="sel-count">
-            {selectedTrackCount} トラック・{selectedClipCount} クリップ選択中
+            {selectedClipCount} clip{selectedClipCount === 1 ? "" : "s"} on{" "}
+            {selectedTrackCount} track{selectedTrackCount === 1 ? "" : "s"} selected
           </span>
           <span className="sel-time">@ {cur.mm}:{cur.ss}.{cur.ms}</span>
           <div className="sel-actions">
             <button
               className="sel-action"
-              title="再生位置で分割 (⌘B)"
+              title="Split at playhead (⌘B)"
               onClick={() => splitAtPlayhead()}
             >
               <Icon name="scissors" size={13} />
             </button>
             <button
               className="sel-action"
-              title="複製"
+              title="Duplicate"
               onClick={() => duplicateSelection()}
             >
               <Icon name="duplicate" size={13} />
             </button>
             <button
               className="sel-action"
-              title="削除"
+              title="Delete"
               onClick={() => deleteSelection()}
             >
               <Icon name="trash" size={13} />

@@ -58,15 +58,15 @@ export function App() {
       if (!changed) return;
       last = { tracks: s.tracks, sessionName: s.sessionName, zoom: s.zoom };
       if (s.tracks.length === 0 && s.currentProjectId == null) return; // empty + unsaved
-      useStore.setState({ status: "保存中…" });
+      useStore.setState({ status: "Saving…" });
       if (timer) window.clearTimeout(timer);
       timer = window.setTimeout(async () => {
         try {
           await saveCurrentProject();
-          useStore.setState({ status: "保存しました" });
+          useStore.setState({ status: "Saved" });
         } catch (err) {
           console.error("Auto-save failed", err);
-          useStore.setState({ status: "保存に失敗しました" });
+          useStore.setState({ status: "Save failed" });
         }
       }, 800);
     });
@@ -233,13 +233,13 @@ export function App() {
     }
     setExporting(true);
     setExportProgress(0);
-    setStatus("ミックスダウン中…");
+    setStatus("Rendering mix…");
     try {
       // Mixdown is the first half of the progress bar (0..0.5).
       const buf = await renderMix(s.tracks, total, 44100, (p) => {
         setExportProgress(p * 0.5);
       });
-      setStatus("MP3 エンコード中…");
+      setStatus("Encoding MP3…");
       setExportProgress(0.5);
       // Yield once so the status flip paints before encoding spins up.
       await new Promise((r) => setTimeout(r, 0));
@@ -253,10 +253,10 @@ export function App() {
         .slice(0, 14);
       const name = `maycast-mix_${sessionName}_${ts}.mp3`;
       triggerDownload(blob, name);
-      setStatus(`書き出し完了: ${name}`);
+      setStatus(`Exported ${name}`);
     } catch (err) {
       console.error(err);
-      setStatus("書き出しに失敗しました");
+      setStatus("Export failed");
     } finally {
       setExporting(false);
       setExportProgress(null);

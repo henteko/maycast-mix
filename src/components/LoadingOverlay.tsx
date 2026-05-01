@@ -17,8 +17,8 @@ export function LoadingOverlay() {
         <strong className="loading-title">{loading.name}</strong>
         <div className="loading-sub">
           {loading.total > 0
-            ? `${loading.current} / ${loading.total} トラックを読み込み中…`
-            : "プロジェクトを読み込み中…"}
+            ? `Loading track ${loading.current} of ${loading.total}…`
+            : "Loading project…"}
         </div>
         {loading.total > 0 && (
           <div className="loading-bar" aria-label="loading progress">

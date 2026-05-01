@@ -92,15 +92,15 @@ export function Tracks({ onSeek, pxPerSec, projectLength }: Props) {
           <div className="add-track-header">
             <button className="add-track-btn" onClick={onPick}>
               <Icon name="plus" size={13} />
-              音声を追加
+              Add audio
             </button>
           </div>
           <div className="add-track-lane" style={{ width: laneWidth }}>
             <div className="add-track-hint">
-              ファイルをドラッグ&ドロップ または
+              Drag &amp; drop a file or press
               <kbd>⌘</kbd>
               <kbd>O</kbd>
-              で開く ・ MP3 / WAV / M4A 対応
+              · MP3 / WAV / M4A supported
             </div>
           </div>
         </div>
@@ -126,17 +126,15 @@ export function Tracks({ onSeek, pxPerSec, projectLength }: Props) {
       {empty && (
         <div className="empty-hint">
           <div className="empty-hint-card">
-            <strong>音声ファイルを追加してミックスを始めましょう</strong>
-            <div>
-              「音声を追加」ボタン、もしくはここにファイルをドラッグ&ドロップ
-            </div>
+            <strong>Add audio files to start mixing</strong>
+            <div>Use the &quot;Add audio&quot; button or drop files here.</div>
           </div>
         </div>
       )}
 
       {dropping && (
         <div className="drop-hint is-visible">
-          <div className="drop-hint-card">音声ファイルをドロップ</div>
+          <div className="drop-hint-card">Drop audio files</div>
         </div>
       )}
     </div>
@@ -155,7 +153,7 @@ function LoadingTrackRow({ name, laneWidth }: { name: string; laneWidth: number 
         </div>
         <div className="track-meta">
           <span className="spinner" />
-          <span style={{ marginLeft: 6 }}>読み込み中…</span>
+          <span style={{ marginLeft: 6 }}>Loading…</span>
         </div>
       </div>
       <div className="track-lane" style={{ width: laneWidth }}>

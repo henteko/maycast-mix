@@ -25,7 +25,7 @@ export function StatusBar() {
           {exporting
             ? `${status}${showProgress ? ` ${progressPct}%` : ""}`
             : loadingCount > 0
-            ? `読み込み中… ${loadingCount} 件`
+            ? `Loading ${loadingCount} file${loadingCount === 1 ? "" : "s"}…`
             : status}
         </strong>
       </span>
@@ -39,11 +39,11 @@ export function StatusBar() {
       )}
       <span className="sb-item mono">44.1 kHz · 16-bit · Stereo</span>
       <span className="sb-item">
-        サンプル数 <strong>{totalSamples.toLocaleString()}</strong>
+        Samples <strong>{totalSamples.toLocaleString()}</strong>
       </span>
       <div className="sb-spacer" />
       <span className="sb-item">
-        エクスポート: <strong>MP3 320kbps</strong>
+        Export: <strong>MP3 320 kbps</strong>
       </span>
     </div>
   );

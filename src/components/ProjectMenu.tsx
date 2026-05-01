@@ -58,7 +58,7 @@ export function ProjectMenu() {
   const onDelete = async () => {
     setOpen(false);
     if (!currentProjectId) return;
-    if (!confirm(`「${sessionName}」を削除しますか？この操作は元に戻せません。`)) return;
+    if (!confirm(`Delete "${sessionName}"? This action cannot be undone.`)) return;
     await deleteProjectAndAudio(currentProjectId);
     newProject();
   };
@@ -66,7 +66,7 @@ export function ProjectMenu() {
   const totalSec = projectLength(tracks);
   const trackCount = tracks.length;
 
-  const isSaving = status === "保存中…";
+  const isSaving = status === "Saving…";
 
   return (
     <>
@@ -87,7 +87,7 @@ export function ProjectMenu() {
           <button
             className="project-name-btn"
             onClick={() => setOpen((v) => !v)}
-            title="プロジェクトメニュー"
+            title="Project menu"
           >
             <strong>{sessionName}</strong>
             <Icon name="chevron-down" size={12} />
@@ -98,22 +98,22 @@ export function ProjectMenu() {
           <span>{trackCount} tracks</span>
           <span className="dot" />
           <span>{formatDuration(totalSec)}</span>
-          {isSaving && <span className="save-indicator">保存中…</span>}
+          {isSaving && <span className="save-indicator">Saving…</span>}
         </span>
 
         {open && (
           <div className="project-dropdown">
             <button onClick={onNew}>
               <Icon name="plus" size={13} />
-              新規プロジェクト
+              New project
             </button>
             <button onClick={onOpenList}>
               <Icon name="folder" size={13} />
-              プロジェクトを開く…
+              Open project…
             </button>
             <button onClick={onRenameStart}>
               <Icon name="pencil" size={13} />
-              名前を変更
+              Rename
             </button>
             <div className="project-dropdown-divider" />
             <button
@@ -127,7 +127,7 @@ export function ProjectMenu() {
               }
             >
               <Icon name="trash" size={13} />
-              プロジェクトを削除
+              Delete project
             </button>
           </div>
         )}
@@ -160,12 +160,12 @@ function OpenProjectModal({ onClose }: { onClose: () => void }) {
       await loadProject(id);
     } catch (err) {
       console.error(err);
-      alert("プロジェクトの読み込みに失敗しました");
+      alert("Failed to load the project.");
     }
   };
 
   const onDelete = async (id: string, name: string) => {
-    if (!confirm(`「${name}」を削除しますか？この操作は元に戻せません。`)) return;
+    if (!confirm(`Delete "${name}"? This action cannot be undone.`)) return;
     await deleteProjectAndAudio(id);
     setItems((prev) => prev?.filter((p) => p.id !== id) ?? null);
     if (id === useStore.getState().currentProjectId) {
@@ -177,16 +177,16 @@ function OpenProjectModal({ onClose }: { onClose: () => void }) {
     <div className="modal-backdrop" onMouseDown={onClose}>
       <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <strong>プロジェクトを開く</strong>
-          <button className="icon-btn" onClick={onClose} aria-label="閉じる">
+          <strong>Open project</strong>
+          <button className="icon-btn" onClick={onClose} aria-label="Close">
             <Icon name="x" size={14} />
           </button>
         </div>
         <div className="modal-body">
           {items == null ? (
-            <div className="modal-empty">読み込み中…</div>
+            <div className="modal-empty">Loading…</div>
           ) : items.length === 0 ? (
-            <div className="modal-empty">保存済みのプロジェクトはありません</div>
+            <div className="modal-empty">No saved projects yet</div>
           ) : (
             <ul className="project-list">
               {items.map((p) => (
@@ -206,7 +206,7 @@ function OpenProjectModal({ onClose }: { onClose: () => void }) {
                   <button
                     className="icon-btn pli-delete"
                     onClick={() => onDelete(p.id, p.name)}
-                    title="削除"
+                    title="Delete"
                   >
                     <Icon name="trash" size={13} />
                   </button>
@@ -221,20 +221,29 @@ function OpenProjectModal({ onClose }: { onClose: () => void }) {
 }
 
 function formatDuration(s: number): string {
-  if (s <= 0) return "0 sec";
+  if (s <= 0) return "0s";
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
-  if (m === 0) return `${sec} sec`;
-  return `${m} min ${sec.toString().padStart(2, "0")} sec`;
+  if (m === 0) return `${sec}s`;
+  return `${m}m ${sec.toString().padStart(2, "0")}s`;
 }
 
 function formatRelative(ts: number): string {
   const d = new Date(ts);
   const now = Date.now();
   const diffSec = (now - ts) / 1000;
-  if (diffSec < 60) return "たった今";
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} 分前`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} 時間前`;
-  if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)} 日前`;
+  if (diffSec < 60) return "just now";
+  if (diffSec < 3600) {
+    const m = Math.floor(diffSec / 60);
+    return `${m} minute${m === 1 ? "" : "s"} ago`;
+  }
+  if (diffSec < 86400) {
+    const h = Math.floor(diffSec / 3600);
+    return `${h} hour${h === 1 ? "" : "s"} ago`;
+  }
+  if (diffSec < 86400 * 7) {
+    const dd = Math.floor(diffSec / 86400);
+    return `${dd} day${dd === 1 ? "" : "s"} ago`;
+  }
   return d.toLocaleDateString();
 }

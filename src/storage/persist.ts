@@ -128,7 +128,7 @@ export async function loadProject(id: string): Promise<void> {
       loadingFiles: [],
       past: [],
       future: [],
-      status: "準備完了",
+      status: "Ready",
       projectLoading: null,
     });
     localStorage.setItem(LAST_PROJECT_KEY, record.id);
@@ -150,7 +150,7 @@ export function newProject(): void {
     loadingFiles: [],
     past: [],
     future: [],
-    status: "準備完了",
+    status: "Ready",
   });
   localStorage.removeItem(LAST_PROJECT_KEY);
 }

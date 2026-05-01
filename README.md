@@ -4,7 +4,7 @@ Browser-based multi-track audio editor for podcasts, radio shows, and short-form
 All decoding, mixing, and MP3 encoding runs locally in the browser — your audio never
 leaves your machine.
 
-> 仕様書: [`design/SPEC.md`](design/SPEC.md)
+> Original feature spec (Japanese): [`design/SPEC.md`](design/SPEC.md)
 
 ## Features
 

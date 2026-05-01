@@ -104,7 +104,7 @@ export const useStore = create<Store>((set, get) => ({
   playing: false,
   loadingFiles: [],
   projectLoading: null,
-  status: "準備完了",
+  status: "Ready",
   exporting: false,
   exportProgress: null,
   past: [],
@@ -121,7 +121,7 @@ export const useStore = create<Store>((set, get) => ({
     }));
     set((s) => ({
       loadingFiles: [...s.loadingFiles, ...loaders],
-      status: `読み込み中… ${files[0].name}${files.length > 1 ? ` 他${files.length - 1}件` : ""}`,
+      status: `Loading ${files[0].name}${files.length > 1 ? ` (+${files.length - 1} more)` : "…"}`,
       // Snapshot the pre-import state so a single ⌘Z removes the whole batch.
       past: pushSnap(s.past, snap(s)),
       future: [],
@@ -181,7 +181,7 @@ export const useStore = create<Store>((set, get) => ({
         console.error("decode failed", file.name, err);
         set((s) => ({
           loadingFiles: s.loadingFiles.filter((l) => l.id !== loaderId),
-          status: `読み込み失敗: ${file.name}`,
+          status: `Failed to load ${file.name}`,
         }));
       }
     };
@@ -193,8 +193,8 @@ export const useStore = create<Store>((set, get) => ({
     set((s) => ({
       status:
         s.loadingFiles.length === 0
-          ? "準備完了"
-          : `読み込み中… 残り${s.loadingFiles.length}件`,
+          ? "Ready"
+          : `Loading ${s.loadingFiles.length} more…`,
     }));
   },
 
