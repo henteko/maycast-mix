@@ -12,6 +12,7 @@ export function TopBar({ onExport, onToggleTweaks }: Props) {
   const sessionName = useStore((s) => s.sessionName);
   const tracks = useStore((s) => s.tracks);
   const exporting = useStore((s) => s.exporting);
+  const exportProgress = useStore((s) => s.exportProgress);
   const addFiles = useStore((s) => s.addFiles);
   const undo = useStore((s) => s.undo);
   const redo = useStore((s) => s.redo);
@@ -86,7 +87,11 @@ export function TopBar({ onExport, onToggleTweaks }: Props) {
           }
         >
           <Icon name="download" size={14} />
-          {exporting ? "書き出し中…" : "MP3で書き出し"}
+          {exporting
+            ? exportProgress != null
+              ? `書き出し中… ${Math.round(exportProgress * 100)}%`
+              : "書き出し中…"
+            : "MP3で書き出し"}
         </button>
         <input
           ref={fileRef}

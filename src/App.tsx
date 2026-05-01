@@ -22,6 +22,7 @@ export function App() {
   const setPlayhead = useStore((s) => s.setPlayhead);
   const setStatus = useStore((s) => s.setStatus);
   const setExporting = useStore((s) => s.setExporting);
+  const setExportProgress = useStore((s) => s.setExportProgress);
   const sessionName = useStore((s) => s.sessionName);
 
   const engineRef = useRef<PlaybackEngine | null>(null);
@@ -206,13 +207,21 @@ export function App() {
       setPlaying(false);
     }
     setExporting(true);
+    setExportProgress(0);
     setStatus("ミックスダウン中…");
     try {
-      const buf = await renderMix(s.tracks, total, 44100);
+      // Mixdown is the first half of the progress bar (0..0.5).
+      const buf = await renderMix(s.tracks, total, 44100, (p) => {
+        setExportProgress(p * 0.5);
+      });
       setStatus("MP3 エンコード中…");
-      // Yield to the browser so the status update renders.
+      setExportProgress(0.5);
+      // Yield once so the status flip paints before encoding spins up.
       await new Promise((r) => setTimeout(r, 0));
-      const blob = encodeMp3(buf, 320);
+      // Encoding is the second half of the progress bar (0.5..1).
+      const blob = await encodeMp3(buf, 320, (p) => {
+        setExportProgress(0.5 + p * 0.5);
+      });
       const ts = new Date()
         .toISOString()
         .replace(/[-:T]/g, "")
@@ -225,8 +234,9 @@ export function App() {
       setStatus("書き出しに失敗しました");
     } finally {
       setExporting(false);
+      setExportProgress(null);
     }
-  }, [sessionName, setExporting, setPlaying, setStatus]);
+  }, [sessionName, setExporting, setExportProgress, setPlaying, setStatus]);
 
   return (
     <div className="app">

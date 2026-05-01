@@ -32,6 +32,8 @@ interface State {
   /** Last error/info message to surface in the status bar */
   status: string;
   exporting: boolean;
+  /** 0..1 while exporting, null otherwise. */
+  exportProgress: number | null;
   /** Edit history. `past` is for undo, `future` is for redo. */
   past: HistorySnapshot[];
   future: HistorySnapshot[];
@@ -75,6 +77,7 @@ interface Actions {
   // Status
   setStatus: (s: string) => void;
   setExporting: (b: boolean) => void;
+  setExportProgress: (p: number | null) => void;
 
   // History
   /**
@@ -107,6 +110,7 @@ export const useStore = create<Store>((set, get) => ({
   loadingFiles: [],
   status: "準備完了",
   exporting: false,
+  exportProgress: null,
   past: [],
   future: [],
 
@@ -387,6 +391,10 @@ export const useStore = create<Store>((set, get) => ({
 
   setExporting(b) {
     set({ exporting: b });
+  },
+
+  setExportProgress(p) {
+    set({ exportProgress: p });
   },
 
   pushHistory() {
