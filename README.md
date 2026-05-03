@@ -1,6 +1,6 @@
-# Maycast Mix
+# Maycast Slice
 
-https://mix.maycast.henteko07.com/
+https://slice.maycast.henteko07.com/
 
 Browser-based multi-track audio editor for podcasts, radio shows, and short-form audio.
 All decoding, mixing, and MP3 encoding runs locally in the browser — your audio never
@@ -132,7 +132,7 @@ and [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 ## Contributing
 
 Issues and pull requests are welcome at
-<https://github.com/henteko/maycast-mix>.
+<https://github.com/henteko/maycast-slice>.
 
 ## License
 

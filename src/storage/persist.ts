@@ -11,7 +11,7 @@ import {
   type ProjectRecord,
 } from "./db";
 
-const LAST_PROJECT_KEY = "maycast-mix.lastProjectId";
+const LAST_PROJECT_KEY = "maycast-slice.lastProjectId";
 
 let _id = 0;
 function uid(prefix: string): string {

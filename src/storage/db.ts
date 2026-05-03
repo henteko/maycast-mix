@@ -1,6 +1,6 @@
 import type { Clip, ClipPalette } from "../types";
 
-const DB_NAME = "maycast-mix";
+const DB_NAME = "maycast-slice";
 // Bumped from 1 → 2 because an earlier WIP build shipped v2 with the same
 // schema, leaving some users with a v2 store on disk that v1 can't open
 // (VersionError). The upgrade handler is idempotent, so re-running it on

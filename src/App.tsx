@@ -251,7 +251,7 @@ export function App() {
         .toISOString()
         .replace(/[-:T]/g, "")
         .slice(0, 14);
-      const name = `maycast-mix_${sessionName}_${ts}.mp3`;
+      const name = `maycast-slice_${sessionName}_${ts}.mp3`;
       triggerDownload(blob, name);
       setStatus(`Exported ${name}`);
     } catch (err) {

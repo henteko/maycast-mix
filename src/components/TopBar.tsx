@@ -32,7 +32,7 @@ export function TopBar({ onExport }: Props) {
           <Icon name="logo" size={14} />
         </div>
         <div className="brand-name">
-          Maycast<em>Mix</em>
+          Maycast<em>Slice</em>
         </div>
       </div>
       <ProjectMenu />
@@ -97,7 +97,7 @@ export function TopBar({ onExport }: Props) {
 function showHelp() {
   alert(
     [
-      "Maycast Mix — Keyboard shortcuts",
+      "Maycast Slice — Keyboard shortcuts",
       "",
       "Space     Play / Pause",
       "V / M     Select / Move tool",
