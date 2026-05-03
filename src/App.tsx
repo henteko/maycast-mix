@@ -8,6 +8,7 @@ import { useKeyboard } from "./hooks/useKeyboard";
 import { PlaybackEngine } from "./audio/engine";
 import { renderMix } from "./audio/mixdown";
 import { encodeMp3 } from "./audio/mp3";
+import { createZip, type ZipFile } from "./audio/zip";
 import { projectLength as calcProjectLength, useStore } from "./state/store";
 import { saveCurrentProject } from "./storage/persist";
 
@@ -223,49 +224,101 @@ export function App() {
   });
 
   // ─── Export ───
-  const handleExport = useCallback(async () => {
-    const s = useStore.getState();
-    const total = calcProjectLength(s.tracks);
-    if (total <= 0 || s.tracks.length === 0) return;
-    if (s.playing) {
-      engineRef.current?.pause();
-      setPlaying(false);
-    }
-    setExporting(true);
-    setExportProgress(0);
-    setStatus("Rendering mix…");
-    try {
-      // Mixdown is the first half of the progress bar (0..0.5).
-      const buf = await renderMix(s.tracks, total, 44100, (p) => {
-        setExportProgress(p * 0.5);
-      });
-      setStatus("Encoding MP3…");
-      setExportProgress(0.5);
-      // Yield once so the status flip paints before encoding spins up.
-      await new Promise((r) => setTimeout(r, 0));
-      // Encoding is the second half of the progress bar (0.5..1).
-      const blob = await encodeMp3(buf, 320, (p) => {
-        setExportProgress(0.5 + p * 0.5);
-      });
+  const handleExport = useCallback(
+    async (mode: "mix" | "tracks") => {
+      const s = useStore.getState();
+      const total = calcProjectLength(s.tracks);
+      if (total <= 0 || s.tracks.length === 0) return;
+      if (s.playing) {
+        engineRef.current?.pause();
+        setPlaying(false);
+      }
+      setExporting(true);
+      setExportProgress(0);
+      // Progress is split evenly across N outputs (1 for mix, tracks.length
+      // for the per-track ZIP). Each output uses the first half of its slice
+      // for rendering and the second half for MP3 encoding.
+      const totalSteps = mode === "mix" ? 1 : s.tracks.length;
+      let done = 0;
+      const reportRender = (p: number) => {
+        setExportProgress((done + p * 0.5) / totalSteps);
+      };
+      const reportEncode = (p: number) => {
+        setExportProgress((done + 0.5 + p * 0.5) / totalSteps);
+      };
       const ts = new Date()
         .toISOString()
         .replace(/[-:T]/g, "")
         .slice(0, 14);
-      const name = `maycast-slice_${sessionName}_${ts}.mp3`;
-      triggerDownload(blob, name);
-      setStatus(`Exported ${name}`);
-    } catch (err) {
-      console.error(err);
-      setStatus("Export failed");
-    } finally {
-      setExporting(false);
-      setExportProgress(null);
-    }
-  }, [sessionName, setExporting, setExportProgress, setPlaying, setStatus]);
+      const baseName = `maycast-slice_${sessionName}_${ts}`;
+      try {
+        if (mode === "mix") {
+          setStatus("Rendering mix…");
+          const mixBuf = await renderMix(s.tracks, total, 44100, reportRender);
+          setStatus("Encoding mix MP3…");
+          // Yield once so the status flip paints before encoding spins up.
+          await new Promise((r) => setTimeout(r, 0));
+          const mixBlob = await encodeMp3(mixBuf, 320, reportEncode);
+          done++;
+
+          const mixName = `${baseName}.mp3`;
+          triggerDownload(mixBlob, mixName);
+          setStatus(`Exported ${mixName}`);
+        } else {
+          const trackFiles: ZipFile[] = [];
+          const usedNames = new Set<string>();
+          for (let i = 0; i < s.tracks.length; i++) {
+            const track = s.tracks[i];
+            const safe = sanitizeFilenamePart(track.name) || `track-${i + 1}`;
+            let fileName = `${String(i + 1).padStart(2, "0")}_${safe}.mp3`;
+            // Disambiguate duplicate sanitized names.
+            let dedupe = 1;
+            while (usedNames.has(fileName)) {
+              fileName = `${String(i + 1).padStart(2, "0")}_${safe}_${++dedupe}.mp3`;
+            }
+            usedNames.add(fileName);
+
+            setStatus(`Rendering track: ${track.name}`);
+            // Override mute/solo so each per-track export reflects the
+            // track's own audio at its set volume, regardless of editor
+            // state.
+            const isolated = { ...track, mute: false, solo: false };
+            const trackBuf = await renderMix(
+              [isolated],
+              total,
+              44100,
+              reportRender,
+            );
+            setStatus(`Encoding track: ${track.name}`);
+            await new Promise((r) => setTimeout(r, 0));
+            const trackBlob = await encodeMp3(trackBuf, 320, reportEncode);
+            const data = new Uint8Array(await trackBlob.arrayBuffer());
+            trackFiles.push({ name: fileName, data });
+            done++;
+          }
+
+          const zipBlob = createZip(trackFiles);
+          const zipName = `${baseName}_tracks.zip`;
+          triggerDownload(zipBlob, zipName);
+          setStatus(`Exported ${zipName}`);
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus("Export failed");
+      } finally {
+        setExporting(false);
+        setExportProgress(null);
+      }
+    },
+    [sessionName, setExporting, setExportProgress, setPlaying, setStatus],
+  );
 
   return (
     <div className="app">
-      <TopBar onExport={handleExport} />
+      <TopBar
+        onExportMix={() => handleExport("mix")}
+        onExportTracks={() => handleExport("tracks")}
+      />
       <Transport onPlayPause={handlePlayPause} onSeek={handleSeek} />
       <div className="editor">
         <Tracks
@@ -297,4 +350,13 @@ function triggerDownload(blob: Blob, filename: string) {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function sanitizeFilenamePart(name: string): string {
+  return name
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\\/:*?"<>|\x00-\x1f]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^\.+/, "");
 }

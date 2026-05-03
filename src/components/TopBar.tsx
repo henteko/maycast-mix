@@ -4,10 +4,11 @@ import { useStore } from "../state/store";
 import { ProjectMenu } from "./ProjectMenu";
 
 interface Props {
-  onExport: () => void;
+  onExportMix: () => void;
+  onExportTracks: () => void;
 }
 
-export function TopBar({ onExport }: Props) {
+export function TopBar({ onExportMix, onExportTracks }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const tracks = useStore((s) => s.tracks);
   const exporting = useStore((s) => s.exporting);
@@ -65,9 +66,24 @@ export function TopBar({ onExport }: Props) {
         </button>
         <div style={{ width: 8 }} />
         <button
-          className="btn btn-primary"
-          onClick={onExport}
+          className="btn btn-ghost"
+          onClick={onExportTracks}
           disabled={exporting || tracks.length === 0}
+          title="Export each track as MP3 (ZIP)"
+          style={
+            exporting || tracks.length === 0
+              ? { opacity: 0.6, cursor: "not-allowed" }
+              : undefined
+          }
+        >
+          <Icon name="download" size={14} />
+          Export tracks
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={onExportMix}
+          disabled={exporting || tracks.length === 0}
+          title="Export combined mix as MP3"
           style={
             exporting || tracks.length === 0
               ? { opacity: 0.6, cursor: "not-allowed" }
