@@ -19,46 +19,15 @@ export const Clip = memo(function Clip({ clip, track, pxPerSec, selected }: Prop
   const tool = useStore((s) => s.tool);
   const selectClip = useStore((s) => s.selectClip);
   const setClipStarts = useStore((s) => s.setClipStarts);
-  const setClipFade = useStore((s) => s.setClipFade);
   const setPlaying = useStore((s) => s.setPlaying);
 
   const left = clip.start * pxPerSec;
   const width = Math.max(2, clip.duration * pxPerSec);
 
-  const fadeIn = Math.max(0, Math.min(clip.fadeIn ?? 0, clip.duration));
-  const fadeOut = Math.max(0, Math.min(clip.fadeOut ?? 0, clip.duration - fadeIn));
-  const fadeInPx = fadeIn * pxPerSec;
-  const fadeOutPx = fadeOut * pxPerSec;
-
   const visiblePeaks = useMemo(
     () => slicePeaks(track.peaks, track.peaksPerSec, clip.offset, clip.duration),
     [track.peaks, track.peaksPerSec, clip.offset, clip.duration],
   );
-
-  const onFadeMouseDown = (side: "in" | "out") => (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    e.stopPropagation();
-    e.preventDefault();
-    setPlaying(false);
-    useStore.getState().pushHistory();
-    const startX = e.clientX;
-    const orig = side === "in" ? fadeIn : fadeOut;
-    const onMove = (ev: MouseEvent) => {
-      const dx = ev.clientX - startX;
-      // For fade-in, dragging right grows the fade; for fade-out, dragging
-      // left grows it.
-      const deltaSec = (side === "in" ? dx : -dx) / pxPerSec;
-      const next = Math.max(0, orig + deltaSec);
-      if (side === "in") setClipFade(clip.id, { fadeIn: next });
-      else setClipFade(clip.id, { fadeOut: next });
-    };
-    const onUp = () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
 
   /**
    * Unified click + drag handler for the select tool.
@@ -177,24 +146,6 @@ export const Clip = memo(function Clip({ clip, track, pxPerSec, selected }: Prop
       <div className="clip-wave">
         <Waveform peaks={visiblePeaks} color={track.palette.waveColor} />
       </div>
-      {fadeInPx > 0 && (
-        <div className="clip-fade clip-fade-in" style={{ width: fadeInPx }} />
-      )}
-      {fadeOutPx > 0 && (
-        <div className="clip-fade clip-fade-out" style={{ width: fadeOutPx }} />
-      )}
-      <div
-        className="clip-fade-handle clip-fade-handle-in"
-        style={{ left: fadeInPx }}
-        onMouseDown={onFadeMouseDown("in")}
-        title={fadeIn > 0 ? `Fade in: ${fadeIn.toFixed(2)}s` : "Drag right to fade in"}
-      />
-      <div
-        className="clip-fade-handle clip-fade-handle-out"
-        style={{ right: fadeOutPx }}
-        onMouseDown={onFadeMouseDown("out")}
-        title={fadeOut > 0 ? `Fade out: ${fadeOut.toFixed(2)}s` : "Drag left to fade out"}
-      />
     </div>
   );
 });

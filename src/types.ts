@@ -26,14 +26,6 @@ export interface Clip {
   offset: number;
   /** Length of the clip in seconds */
   duration: number;
-  /**
-   * Linear fade-in duration in seconds, applied from the clip's leading
-   * edge. Optional; absent / 0 means no fade. Clamped at render time so
-   * fadeIn + fadeOut never exceeds duration.
-   */
-  fadeIn?: number;
-  /** Linear fade-out duration in seconds, applied to the trailing edge. */
-  fadeOut?: number;
 }
 
 export interface Track {

@@ -61,12 +61,6 @@ interface Actions {
    * mousemove.
    */
   setClipStarts: (updates: Array<{ id: string; start: number }>) => void;
-  /**
-   * Set fadeIn/fadeOut on a clip. Both are clamped to [0, duration] and
-   * each other so fades never overlap. Pass `undefined` for a field to
-   * leave it unchanged.
-   */
-  setClipFade: (clipId: string, fade: { fadeIn?: number; fadeOut?: number }) => void;
   deleteSelection: () => void;
   duplicateSelection: () => void;
 
@@ -262,15 +256,9 @@ export const useStore = create<Store>((set, get) => ({
         ) {
           const headDur = playhead - clip.start;
           const tailDur = end - playhead;
-          // Fades stay on the side of the split where they originated and
-          // are clamped to the new (shorter) duration. Cross-cut fades are
-          // intentionally simplified: head loses its fadeOut, tail loses
-          // its fadeIn — re-set after the split if needed.
           const head: Clip = {
             ...clip,
             duration: headDur,
-            fadeIn: Math.min(clip.fadeIn ?? 0, headDur),
-            fadeOut: 0,
           };
           const tail: Clip = {
             id: uid("c"),
@@ -279,8 +267,6 @@ export const useStore = create<Store>((set, get) => ({
             start: playhead,
             offset: clip.offset + headDur,
             duration: tailDur,
-            fadeIn: 0,
-            fadeOut: Math.min(clip.fadeOut ?? 0, tailDur),
           };
           newClips.push(head, tail);
           newSelection.add(head.id);
@@ -306,29 +292,6 @@ export const useStore = create<Store>((set, get) => ({
         future: [],
       }));
     }
-  },
-
-  setClipFade(clipId, fade) {
-    set((s) => {
-      let changed = false;
-      const tracks = s.tracks.map((track) => {
-        if (!track.clips.some((c) => c.id === clipId)) return track;
-        const newClips = track.clips.map((c) => {
-          if (c.id !== clipId) return c;
-          const nextIn = fade.fadeIn != null
-            ? Math.max(0, Math.min(c.duration, fade.fadeIn))
-            : c.fadeIn ?? 0;
-          const nextOut = fade.fadeOut != null
-            ? Math.max(0, Math.min(c.duration - nextIn, fade.fadeOut))
-            : Math.max(0, Math.min(c.duration - nextIn, c.fadeOut ?? 0));
-          if ((c.fadeIn ?? 0) === nextIn && (c.fadeOut ?? 0) === nextOut) return c;
-          changed = true;
-          return { ...c, fadeIn: nextIn, fadeOut: nextOut };
-        });
-        return { ...track, clips: newClips };
-      });
-      return changed ? { tracks } : {};
-    });
   },
 
   setClipStarts(updates) {

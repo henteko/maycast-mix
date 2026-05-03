@@ -1,54 +1,8 @@
-import type { Clip, Track } from "../types";
+import type { Track } from "../types";
 import { getAudioContext } from "./decoder";
-
-/**
- * Schedule fade-in / fade-out ramps on a clip's GainNode. `when` is the
- * absolute AudioContext time at which playback of this clip begins; `from`
- * is the timeline second at which the engine started playing (used to
- * detect mid-clip starts that land inside a fade region).
- */
-function applyFadeAutomation(
-  param: AudioParam,
-  clip: Clip,
-  when: number,
-  from: number,
-) {
-  const fadeIn = Math.max(0, Math.min(clip.fadeIn ?? 0, clip.duration));
-  const fadeOut = Math.max(
-    0,
-    Math.min(clip.fadeOut ?? 0, clip.duration - fadeIn),
-  );
-  if (fadeIn === 0 && fadeOut === 0) return;
-
-  // How far into the clip we already are at `when` (0 if starting at or
-  // before the clip's leading edge).
-  const skipped = Math.max(0, from - clip.start);
-
-  if (fadeIn > 0 && skipped < fadeIn) {
-    const startGain = skipped / fadeIn;
-    param.setValueAtTime(startGain, when);
-    param.linearRampToValueAtTime(1, when + (fadeIn - skipped));
-  }
-
-  if (fadeOut > 0) {
-    const fadeOutClipTime = clip.duration - fadeOut;
-    if (skipped >= fadeOutClipTime) {
-      // Mid-fade-out start.
-      const elapsedFade = skipped - fadeOutClipTime;
-      const startGain = 1 - elapsedFade / fadeOut;
-      param.setValueAtTime(startGain, when);
-      param.linearRampToValueAtTime(0, when + (fadeOut - elapsedFade));
-    } else {
-      const ctxFadeStart = when + (fadeOutClipTime - skipped);
-      param.setValueAtTime(1, ctxFadeStart);
-      param.linearRampToValueAtTime(0, ctxFadeStart + fadeOut);
-    }
-  }
-}
 
 interface ScheduledSource {
   source: AudioBufferSourceNode;
-  gain: GainNode;
 }
 
 /**
@@ -126,22 +80,16 @@ export class PlaybackEngine {
         }
         if (dur <= 0) continue;
 
-        // Per-clip gain node for fade automation. Always inserted so the
-        // graph is uniform; with no fades it's a unity passthrough.
-        const clipGain = this.ctx.createGain();
-        clipGain.connect(trackGain);
-        applyFadeAutomation(clipGain.gain, clip, when, from);
-
         const src = this.ctx.createBufferSource();
         src.buffer = track.buffer;
-        src.connect(clipGain);
+        src.connect(trackGain);
         try {
           src.start(when, bufOffset, dur);
         } catch {
           // start() can throw if when < currentTime — ignore.
           continue;
         }
-        this.sources.push({ source: src, gain: clipGain });
+        this.sources.push({ source: src });
       }
     }
 
@@ -193,7 +141,6 @@ export class PlaybackEngine {
       }
       try {
         s.source.disconnect();
-        s.gain.disconnect();
       } catch {
         /* ignore */
       }
